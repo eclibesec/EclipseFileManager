@@ -1,14 +1,21 @@
 <?php
 session_start();
 $current_filename = basename($_SERVER['SCRIPT_FILENAME']);
+
+// Default credentials (username: admin, password: admin123)
 $default_username = 'admin';
-$default_password_hash = '$2a$12$oZzttE3LCx3OoDKmsbsOuOpi5Ry3S4023gqAKSbF.xGhOMzxV.4Y.';
+$default_password_hash = '$2a$12$UBIkydbkd50bmZuaQXb0NuvrPd7XeeIKbFaGRYdvJDIHkGQ8GxOZe'; // bcrypt hash of "admin123"
+
+// Generate or retrieve chat session ID based on IP
 if (!isset($_SESSION['chat_session_id'])) {
     $_SESSION['chat_session_id'] = md5($_SERVER['REMOTE_ADDR'] . time());
 }
+
+// Handle login
 if (isset($_POST['login'])) {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
+    
     if ($username === $default_username && password_verify($password, $default_password_hash)) {
         $_SESSION['authenticated'] = true;
         $_SESSION['username'] = $username;
@@ -18,6 +25,7 @@ if (isset($_POST['login'])) {
             'type' => 'success',
             'message' => 'Login successful! Welcome to Eclipse File Manager.'
         ];
+        
         header("Location: $current_filename");
         exit;
     } else {
@@ -27,26 +35,37 @@ if (isset($_POST['login'])) {
         ];
     }
 }
+
+// Handle logout
 if (isset($_GET['logout'])) {
     session_destroy();
     header("Location: $current_filename");
     exit;
 }
+
+// Check authentication
 $authenticated = isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true;
+
+// Path handling
 $path = isset($_GET['path']) ? realpath($_GET['path']) : getcwd();
 if (!$path || !is_dir($path)) $path = getcwd();
+
+// File size formatting
 function formatSize($s) {
     if ($s >= 1073741824) return round($s / 1073741824, 2) . ' GB';
     if ($s >= 1048576) return round($s / 1048576, 2) . ' MB';
     if ($s >= 1024) return round($s / 1024, 2) . ' KB';
     return $s . ' B';
 }
+
+// Search functionality
 $search_results = [];
 $search_query = '';
 if (isset($_GET['search']) && !empty($_GET['search'])) {
     $search_query = $_GET['search'];
     $search_results = searchFiles($path, $search_query);
 }
+
 function searchFiles($directory, $query) {
     $results = [];
     $items = scandir($directory);
@@ -55,6 +74,8 @@ function searchFiles($directory, $query) {
         if ($item === '.' || $item === '..') continue;
         
         $fullPath = $directory . '/' . $item;
+        
+        // Check if name contains search query
         if (stripos($item, $query) !== false) {
             $results[] = [
                 'path' => $fullPath,
@@ -63,6 +84,8 @@ function searchFiles($directory, $query) {
                 'size' => is_file($fullPath) ? filesize($fullPath) : 0
             ];
         }
+        
+        // Recursively search in subdirectories
         if (is_dir($fullPath)) {
             $subResults = searchFiles($fullPath, $query);
             $results = array_merge($results, $subResults);
@@ -71,7 +94,10 @@ function searchFiles($directory, $query) {
     
     return $results;
 }
+
+// Only process actions if authenticated
 if ($authenticated) {
+    // Delete file/folder
     if (isset($_GET['delete'])) {
         $target = realpath($path . '/' . $_GET['delete']);
         if (strpos($target, $path) === 0 && is_writable($target)) {
@@ -104,6 +130,8 @@ if ($authenticated) {
         header("Location: ?path=" . urlencode($path));
         exit;
     }
+
+    // Rename file/folder
     if (isset($_POST['rename_from'], $_POST['rename_to'])) {
         $from = realpath($path . '/' . $_POST['rename_from']);
         $to = $path . '/' . basename($_POST['rename_to']);
@@ -123,6 +151,8 @@ if ($authenticated) {
         header("Location: ?path=" . urlencode($path));
         exit;
     }
+
+    // Create new folder
     if (isset($_POST['new_folder'])) {
         $folder_name = basename($_POST['new_folder']);
         if (mkdir($path . '/' . $folder_name)) {
@@ -157,10 +187,15 @@ if ($authenticated) {
         header("Location: ?path=" . urlencode($path));
         exit;
     }
+
+    // Upload file(s)
     if (isset($_FILES['upload'])) {
         $upload_count = 0;
         $error_count = 0;
+        
+        // Check if it's a multi-file upload
         if (is_array($_FILES['upload']['name'])) {
+            // Multi-file upload
             foreach ($_FILES['upload']['name'] as $key => $name) {
                 if ($_FILES['upload']['error'][$key] === 0) {
                     $upload_name = basename($name);
@@ -186,6 +221,7 @@ if ($authenticated) {
                 ];
             }
         } else {
+            // Single file upload
             if ($_FILES['upload']['error'] === 0) {
                 $upload_name = basename($_FILES['upload']['name']);
                 if (move_uploaded_file($_FILES['upload']['tmp_name'], $path . '/' . $upload_name)) {
@@ -210,6 +246,8 @@ if ($authenticated) {
         header("Location: ?path=" . urlencode($path));
         exit;
     }
+
+    // Save file content
     if (isset($_POST['save_file'], $_POST['content'])) {
         $file = realpath($path . '/' . $_POST['save_file']);
         if (strpos($file, $path) === 0 && is_file($file)) {
@@ -229,6 +267,8 @@ if ($authenticated) {
         exit;
     }
 }
+
+// Get file extension for icon determination
 function getFileIcon($filename) {
     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
     
@@ -1087,12 +1127,35 @@ $theme = isset($_COOKIE['theme']) ? $_COOKIE['theme'] : 'light';
         }
 
         .editor-container {
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 120px);
-            min-height: 800px; /* Tinggi minimum yang lebih besar */
-            overflow: hidden;
-        }
+    display: flex;
+    flex-direction: column;
+    height: 80vh !important;
+    min-height: 500px !important;
+    overflow: visible;
+    position: relative;
+    margin-bottom: 50px;
+}
+
+.editor-body {
+    flex: 1;
+    position: relative;
+    height: 100%;
+    min-height: 500px;
+    overflow: visible;
+}
+
+.CodeMirror {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: auto !important;
+    min-height: 500px !important;
+    font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1.6;
+}
 
         .editor-body {
             flex: 1;
@@ -1126,16 +1189,17 @@ $theme = isset($_COOKIE['theme']) ? $_COOKIE['theme'] : 'light';
         }
 
         .CodeMirror {
-            height: 100% !important;
-            font-family: 'Fira Code', 'Courier New', Courier, monospace;
-            font-size: 16px; /* Ukuran font yang lebih besar */
-            line-height: 1.6;
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-        }
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    height: auto !important;
+    min-height: 800px !important;
+    font-family: 'Fira Code', 'Courier New', Courier, monospace;
+    font-size: 16px;
+    line-height: 1.6;
+}
 
         .CodeMirror-scroll {
             height: 100%;
@@ -2774,83 +2838,46 @@ $theme = isset($_COOKIE['theme']) ? $_COOKIE['theme'] : 'light';
             // Initialize CodeMirror editor
             let editor;
             if (codeEditor) {
-                const mode = codeEditor.getAttribute('data-mode') || 'text/plain';
-                editor = CodeMirror.fromTextArea(codeEditor, {
-                    mode: mode,
-                    theme: '<?php echo $theme === 'dark' ? 'dracula' : 'eclipse'; ?>',
-                    lineNumbers: true,
-                    lineWrapping: true,
-                    autoCloseBrackets: true,
-                    autoCloseTags: true,
-                    matchBrackets: true,
-                    indentUnit: 4,
-                    tabSize: 4,
-                    indentWithTabs: false,
-                    extraKeys: {
-                        "Ctrl-Space": "autocomplete",
-                        "Ctrl-/": "toggleComment",
-                        "Ctrl-F": "findPersistent",
-                        "F11": function(cm) {
-                            toggleFullscreen();
-                        },
-                        "Esc": function(cm) {
-                            if (editorCard.classList.contains('fullscreen')) {
-                                toggleFullscreen();
-                            }
-                        }
-                    },
-                    foldGutter: true,
-                    gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-                    styleActiveLine: true,
-                    autoRefresh: true,
-                    viewportMargin: Infinity,
-                    minHeight: "600px"
-                });
-                
-                // Set editor size
-                editor.setSize("100%", "100%");
-                
-                // Refresh editor after a short delay to ensure proper rendering
-                setTimeout(() => {
-                    editor.refresh();
-                    
-                    // Adjust editor height
-                    const editorContainer = document.querySelector('.editor-container');
-                    if (editorContainer) {
-                        const availableHeight = window.innerHeight - 120;
-                        const minHeight = Math.max(600, availableHeight);
-                        
-                        editorContainer.style.height = minHeight + 'px';
-                        editor.setSize("100%", minHeight - 40);
-                        
-                        setTimeout(() => {
-                            editor.refresh();
-                            editor.focus();
-                        }, 200);
-                    }
-                }, 200);
-                
-                // Toggle fullscreen
-                function toggleFullscreen() {
-                    editorCard.classList.toggle('fullscreen');
-                    
-                    if (editorCard.classList.contains('fullscreen')) {
-                        fullscreenToggleBtn.innerHTML = '<i class="fas fa-compress"></i><span>Exit Fullscreen</span>';
-                    } else {
-                        fullscreenToggleBtn.innerHTML = '<i class="fas fa-expand"></i><span>Fullscreen</span>';
-                    }
-                    
-                    setTimeout(() => {
-                        editor.refresh();
-                        editor.focus();
-                    }, 100);
-                }
-                
-                // Fullscreen toggle button
-                if (fullscreenToggleBtn) {
-                    fullscreenToggleBtn.addEventListener('click', toggleFullscreen);
+    const mode = codeEditor.getAttribute('data-mode') || 'text/plain';
+    editor = CodeMirror.fromTextArea(codeEditor, {
+        mode: mode,
+        theme: '<?php echo $theme === 'dark' ? 'dracula' : 'eclipse'; ?>',
+        lineNumbers: true,
+        lineWrapping: true,
+        autoCloseBrackets: true,
+        autoCloseTags: true,
+        matchBrackets: true,
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        extraKeys: {
+            "Ctrl-Space": "autocomplete",
+            "Ctrl-/": "toggleComment",
+            "Ctrl-F": "findPersistent",
+            "F11": function(cm) {
+                toggleFullscreen();
+            },
+            "Esc": function(cm) {
+                if (editorCard.classList.contains('fullscreen')) {
+                    toggleFullscreen();
                 }
             }
+        },
+        foldGutter: true,
+        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+        styleActiveLine: true,
+        autoRefresh: true,
+        viewportMargin: Infinity
+    });
+    
+    // JANGAN set ukuran editor, biarkan mengisi container
+    
+    // Force refresh editor beberapa kali
+    setTimeout(() => editor.refresh(), 100);
+    setTimeout(() => editor.refresh(), 500);
+    setTimeout(() => editor.refresh(), 1000);
+    setTimeout(() => editor.refresh(), 2000);
+}
             
             // Sidebar toggle
             if (openSidebarBtn) {
@@ -3171,14 +3198,17 @@ $theme = isset($_COOKIE['theme']) ? $_COOKIE['theme'] : 'light';
                     sidebar.classList.remove('show');
                 }
                 
-                // Resize editor
+                // Resize editor dengan tinggi yang lebih besar
                 if (editor) {
-                    editor.refresh();
                     const editorContainer = document.querySelector('.editor-container');
                     if (editorContainer) {
-                        const availableHeight = window.innerHeight - 120;
+                        const availableHeight = window.innerHeight - 150;
                         editorContainer.style.height = availableHeight + 'px';
-                        editor.setSize("100%", availableHeight - 40);
+            
+                        // PENTING: Jangan set ukuran editor, biarkan mengisi container
+                        setTimeout(() => {
+                            editor.refresh();
+                        }, 100);
                     }
                 }
             });
@@ -3511,31 +3541,59 @@ $theme = isset($_COOKIE['theme']) ? $_COOKIE['theme'] : 'light';
             }
         });
 
-// Tambahkan kode ini di bagian akhir file JavaScript (setelah baris terakhir yang sudah ada)
-
-// Tambahkan kode untuk mengatur ukuran editor saat halaman dimuat
-if (editor) {
-    setTimeout(() => {
+// Fungsi untuk memaksa refresh editor
+function forceRefreshEditor() {
+    if (editor) {
         editor.refresh();
         
-        // Gunakan pendekatan yang lebih agresif untuk ukuran editor
-        const editorContainer = document.querySelector('.editor-container');
-        if (editorContainer) {
-            // Gunakan hampir seluruh tinggi layar yang tersedia
-            const availableHeight = window.innerHeight - 120;
-            const minHeight = Math.max(800, availableHeight); // Minimal 800px atau tinggi yang tersedia
-            
-            // Atur tinggi container dan editor
-            editorContainer.style.height = minHeight + 'px';
-            editor.setSize("100%", minHeight - 40); // Kurangi 40px untuk footer
-            
-            // Pastikan editor dirender dengan benar
-            setTimeout(() => {
-                editor.refresh();
-                editor.focus();
-            }, 200);
+        // Pastikan editor terlihat
+        const editorElement = document.querySelector('.CodeMirror');
+        if (editorElement) {
+            editorElement.style.height = 'auto';
+            editorElement.style.minHeight = '500px';
+            editorElement.style.display = 'block';
+            editorElement.style.visibility = 'visible';
+            editorElement.style.opacity = '1';
         }
-    }, 200);
+    }
+}
+
+// Panggil fungsi refresh saat halaman dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    forceRefreshEditor();
+    
+    // Refresh berkala selama 10 detik pertama
+    let refreshCount = 0;
+    const refreshInterval = setInterval(() => {
+        forceRefreshEditor();
+        refreshCount++;
+        if (refreshCount >= 10) {
+            clearInterval(refreshInterval);
+        }
+    }, 1000);
+});
+
+// Refresh saat ukuran window berubah
+window.addEventListener('resize', forceRefreshEditor);
+
+// Refresh saat tab menjadi aktif
+document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+        forceRefreshEditor();
+    }
+});
+
+// Tambahkan fungsi toggleFullscreen jika belum ada
+function toggleFullscreen() {
+    if (editorCard) {
+        editorCard.classList.toggle('fullscreen');
+        if (editorCard.classList.contains('fullscreen')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        forceRefreshEditor();
+    }
 }
     </script>
 </body>
