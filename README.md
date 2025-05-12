@@ -156,13 +156,11 @@ Eclipse File Manager is licensed under the [MIT License](LICENSE).
 - Font Awesome for icons
 - Bootstrap for CSS framework
 - jQuery for DOM manipulation
-- AI Chat powered by OpenAI
 
 ## Contact & Support
 
 For questions, suggestions, or bug reports, please contact:
 - Email: support@eclipsefilemanager.com
-- GitHub Issues: https://github.com/username/eclipse-file-manager/issues
 
 ---
 
