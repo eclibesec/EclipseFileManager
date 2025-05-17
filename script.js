@@ -354,8 +354,10 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("others_write").checked = !!(perms & 0o2)
           document.getElementById("others_exec").checked = !!(perms & 0o1)
 
-          // Update permission value
-          updatePermissionValue()
+          // Set the direct input value
+          const octalValue = (perms & 0o7777).toString(8).padStart(4, "0")
+          document.getElementById("directPermValue").value = octalValue
+          document.getElementById("chmodValue").value = octalValue
         })
         .catch((error) => {
           console.error("Error fetching permissions:", error)
@@ -372,7 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
           document.getElementById("others_write").checked = false
           document.getElementById("others_exec").checked = true
 
-          updatePermissionValue()
+          // Set default value
+          document.getElementById("directPermValue").value = "0755"
+          document.getElementById("chmodValue").value = "0755"
         })
 
       openModal(document.getElementById("chmodModal"))
@@ -396,12 +400,12 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     const octalValue = value.toString(8).padStart(4, "0")
-    document.getElementById("chmodValue").value = octalValue
 
-    // Update direct input value
+    // Update direct input value and hidden value
     if (document.getElementById("directPermValue")) {
       document.getElementById("directPermValue").value = octalValue
     }
+    document.getElementById("chmodValue").value = octalValue
   }
 
   // Handle direct permission input
@@ -412,9 +416,8 @@ document.addEventListener("DOMContentLoaded", () => {
       this.value = this.value.replace(/[^0-7]/g, "").substring(0, 4)
 
       if (this.value.length > 0) {
-        // Update permission value
+        // Update hidden value
         const octalValue = this.value.padStart(4, "0")
-        document.getElementById("permissionValue").textContent = octalValue
         document.getElementById("chmodValue").value = octalValue
 
         // Update checkboxes based on octal value
@@ -445,12 +448,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const submitChmodBtn = document.getElementById("submitChmod")
   if (submitChmodBtn) {
     submitChmodBtn.addEventListener("click", () => {
-      // Prioritaskan nilai yang diinput langsung
-      const directValue = document.getElementById("directPermValue")?.value
-      if (directValue && directValue.trim() !== "") {
-        // Gunakan nilai yang diinput langsung
-        document.getElementById("chmodValue").value = directValue.padStart(4, "0")
-      }
+      // Ambil nilai dari input langsung
+      const directValue = document.getElementById("directPermValue").value
+
+      // Pastikan nilai diisi ke hidden input
+      document.getElementById("chmodValue").value = directValue.padStart(4, "0")
+
+      // Log untuk debugging
+      console.log("Submitting chmod with value:", document.getElementById("chmodValue").value)
+
+      // Submit form
       document.getElementById("chmodForm").submit()
     })
   }
