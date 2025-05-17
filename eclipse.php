@@ -1095,7 +1095,6 @@ $theme = isset($_COOKIE['theme']) ? $_COOKIE['theme'] : 'light';
             <form method="post" id="chmodForm">
                 <p>Changing permissions for: <strong id="chmodItemName"></strong></p>
                 <div class="form-group mb-4">
-                    <label for="directPermValue" class="form-label">Permission Value (Octal):</label>
                     <input type="text" id="directPermValue" name="chmod_value" class="form-control" placeholder="e.g. 644, 755" maxlength="4">
                     <small class="text-muted">Input permission number directly (e.g. 755, 644)</small>
                 </div>
