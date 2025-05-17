@@ -442,17 +442,19 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("others_exec").checked = !!(octalValue & 0o1)
   }
 
-  // Submit chmod form
-  const submitChmodBtn = document.getElementById("submitChmod")
-  if (submitChmodBtn) {
-    submitChmodBtn.addEventListener("click", () => {
-      const directValue = document.getElementById("directPermValue")?.value
-      if (directValue) {
-        document.getElementById("chmodValue").value = directValue.padStart(4, "0")
-      }
-      document.getElementById("chmodForm").submit()
-    })
-  }
+// Submit chmod form
+const submitChmodBtn = document.getElementById("submitChmod")
+if (submitChmodBtn) {
+  submitChmodBtn.addEventListener("click", () => {
+    // Prioritaskan nilai yang diinput langsung
+    const directValue = document.getElementById("directPermValue")?.value
+    if (directValue && directValue.trim() !== "") {
+      // Gunakan nilai yang diinput langsung
+      document.getElementById("chmodValue").value = directValue.padStart(4, "0")
+    }
+    document.getElementById("chmodForm").submit()
+  })
+}
 
   // GSocket output modal
   const gsocketOutputModal = document.getElementById("gsocketOutputModal")
