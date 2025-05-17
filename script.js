@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   })
 
-  // Chmod functionality
+  // Chmod functionality - SIMPLIFIED VERSION
   document.querySelectorAll(".chmod-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       const name = btn.getAttribute("data-name")
@@ -341,135 +341,27 @@ document.addEventListener("DOMContentLoaded", () => {
         .then((data) => {
           const perms = data.permissions
           
-          // Set direct permission input value
+          // Set direct permission input value - convert to octal string without leading 0
           const octalValue = (perms & 0o777).toString(8).padStart(3, "0")
           document.getElementById("directPermValue").value = octalValue
-          document.getElementById("chmodValue").value = octalValue
-
-          // Set checkboxes based on permissions
-          document.getElementById("owner_read").checked = !!(perms & 0o400)
-          document.getElementById("owner_write").checked = !!(perms & 0o200)
-          document.getElementById("owner_exec").checked = !!(perms & 0o100)
-
-          document.getElementById("group_read").checked = !!(perms & 0o40)
-          document.getElementById("group_write").checked = !!(perms & 0o20)
-          document.getElementById("group_exec").checked = !!(perms & 0o10)
-
-          document.getElementById("others_read").checked = !!(perms & 0o4)
-          document.getElementById("others_write").checked = !!(perms & 0o2)
-          document.getElementById("others_exec").checked = !!(perms & 0o1)
         })
         .catch((error) => {
           console.error("Error fetching permissions:", error)
-          // Set default permissions (0755)
+          // Set default permissions (755)
           document.getElementById("directPermValue").value = "755"
-          document.getElementById("chmodValue").value = "755"
-          
-          document.getElementById("owner_read").checked = true
-          document.getElementById("owner_write").checked = true
-          document.getElementById("owner_exec").checked = true
-
-          document.getElementById("group_read").checked = true
-          document.getElementById("group_write").checked = false
-          document.getElementById("group_exec").checked = true
-
-          document.getElementById("others_read").checked = true
-          document.getElementById("others_write").checked = false
-          document.getElementById("others_exec").checked = true
         })
 
       openModal(document.getElementById("chmodModal"))
     })
   })
 
-  // Function to update checkboxes based on octal value
-  function updateCheckboxesFromOctal(octalValue) {
-    // Pastikan nilai valid
-    if (isNaN(octalValue) || octalValue === 0) {
-      octalValue = 0o755; // Default ke 755 jika tidak valid
-    }
-    
-    // Owner permissions
-    document.getElementById("owner_read").checked = !!(octalValue & 0o400)
-    document.getElementById("owner_write").checked = !!(octalValue & 0o200)
-    document.getElementById("owner_exec").checked = !!(octalValue & 0o100)
-    
-    // Group permissions
-    document.getElementById("group_read").checked = !!(octalValue & 0o40)
-    document.getElementById("group_write").checked = !!(octalValue & 0o20)
-    document.getElementById("group_exec").checked = !!(octalValue & 0o10)
-    
-    // Others permissions
-    document.getElementById("others_read").checked = !!(octalValue & 0o4)
-    document.getElementById("others_write").checked = !!(octalValue & 0o2)
-    document.getElementById("others_exec").checked = !!(octalValue & 0o1)
-  }
-
-  // Handle direct permission input
-  const directPermValue = document.getElementById("directPermValue")
-  if (directPermValue) {
-    directPermValue.addEventListener("input", function() {
-      // Ensure only valid octal digits (0-7) and max 4 digits
-      this.value = this.value.replace(/[^0-7]/g, "").substring(0, 4)
-      
-      if (this.value.length > 0) {
-        // Update hidden value
-        document.getElementById("chmodValue").value = this.value
-        
-        // Update checkboxes based on octal value
-        // Konversi ke oktal dengan benar
-        let octalValue;
-        try {
-          octalValue = parseInt(this.value, 8);
-        } catch (e) {
-          octalValue = 0o755; // Default jika parsing gagal
-        }
-        
-        updateCheckboxesFromOctal(octalValue)
-      }
-    })
-  }
-
-  // Update permission value when checkboxes are changed
-  document.querySelectorAll(".perm-checkbox").forEach((checkbox) => {
-    checkbox.addEventListener("change", updatePermissionValue)
-  })
-
-  // Calculate permission value from checkboxes
-  function updatePermissionValue() {
-    const checkboxes = document.querySelectorAll(".perm-checkbox")
-    let value = 0
-
-    checkboxes.forEach((checkbox) => {
-      if (checkbox.checked) {
-        value += Number.parseInt(checkbox.getAttribute("data-value"), 10)
-      }
-    })
-
-    const octalValue = value.toString(8).padStart(3, "0")
-    document.getElementById("directPermValue").value = octalValue
-    document.getElementById("chmodValue").value = octalValue
-  }
-
-  // Submit chmod form
+  // Submit chmod form - SIMPLIFIED VERSION
   const submitChmodBtn = document.getElementById("submitChmod")
   if (submitChmodBtn) {
     submitChmodBtn.addEventListener("click", () => {
-      // Ambil nilai dari input langsung
-      let permValue = document.getElementById("directPermValue").value.trim()
-      
-      // Pastikan nilai valid
-      if (!permValue) {
-        permValue = "755" // Default jika kosong
-      }
-      
-      // Hapus awalan "0" jika ada untuk menghindari masalah konversi oktal di PHP
-      if (permValue.startsWith("0")) {
-        permValue = permValue.substring(1)
-      }
-      
-      // Pastikan nilai diisi ke hidden input
-      document.getElementById("chmodValue").value = permValue
+      // Ensure only valid octal digits
+      const permInput = document.getElementById("directPermValue")
+      permInput.value = permInput.value.replace(/[^0-7]/g, "").substring(0, 4)
       
       // Submit form
       document.getElementById("chmodForm").submit()
