@@ -762,7 +762,7 @@ document.addEventListener("DOMContentLoaded", () => {
           params: {
             id: chatSessionId,
             text: text,
-            prompt: "Kamu adalah kenshin, Assisten AI Yang dapat membantu memecahkan masalah apapun!",
+            prompt: "Kamu adalah EclipseAi, Assisten AI Yang dapat membantu memecahkan masalah apapun!",
             file: fileUrl || "null",
             apikey: "kensdev",
           },
