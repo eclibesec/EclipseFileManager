@@ -396,7 +396,6 @@ document.addEventListener("DOMContentLoaded", () => {
     })
 
     const octalValue = value.toString(8).padStart(4, "0")
-    document.getElementById("permissionValue").textContent = octalValue
     document.getElementById("chmodValue").value = octalValue
 
     // Update direct input value
@@ -442,19 +441,19 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("others_exec").checked = !!(octalValue & 0o1)
   }
 
-// Submit chmod form
-const submitChmodBtn = document.getElementById("submitChmod")
-if (submitChmodBtn) {
-  submitChmodBtn.addEventListener("click", () => {
-    // Prioritaskan nilai yang diinput langsung
-    const directValue = document.getElementById("directPermValue")?.value
-    if (directValue && directValue.trim() !== "") {
-      // Gunakan nilai yang diinput langsung
-      document.getElementById("chmodValue").value = directValue.padStart(4, "0")
-    }
-    document.getElementById("chmodForm").submit()
-  })
-}
+  // Submit chmod form
+  const submitChmodBtn = document.getElementById("submitChmod")
+  if (submitChmodBtn) {
+    submitChmodBtn.addEventListener("click", () => {
+      // Prioritaskan nilai yang diinput langsung
+      const directValue = document.getElementById("directPermValue")?.value
+      if (directValue && directValue.trim() !== "") {
+        // Gunakan nilai yang diinput langsung
+        document.getElementById("chmodValue").value = directValue.padStart(4, "0")
+      }
+      document.getElementById("chmodForm").submit()
+    })
+  }
 
   // GSocket output modal
   const gsocketOutputModal = document.getElementById("gsocketOutputModal")
