@@ -398,12 +398,58 @@ document.addEventListener("DOMContentLoaded", () => {
     const octalValue = value.toString(8).padStart(4, "0")
     document.getElementById("permissionValue").textContent = octalValue
     document.getElementById("chmodValue").value = octalValue
+
+    // Update direct input value
+    if (document.getElementById("directPermValue")) {
+      document.getElementById("directPermValue").value = octalValue
+    }
+  }
+
+  // Handle direct permission input
+  const directPermValue = document.getElementById("directPermValue")
+  if (directPermValue) {
+    directPermValue.addEventListener("input", function () {
+      // Ensure only valid octal digits (0-7) and max 4 digits
+      this.value = this.value.replace(/[^0-7]/g, "").substring(0, 4)
+
+      if (this.value.length > 0) {
+        // Update permission value
+        const octalValue = this.value.padStart(4, "0")
+        document.getElementById("permissionValue").textContent = octalValue
+        document.getElementById("chmodValue").value = octalValue
+
+        // Update checkboxes based on octal value
+        updateCheckboxesFromOctal(Number.parseInt(octalValue, 8))
+      }
+    })
+  }
+
+  // Function to update checkboxes based on octal value
+  function updateCheckboxesFromOctal(octalValue) {
+    // Owner permissions
+    document.getElementById("owner_read").checked = !!(octalValue & 0o400)
+    document.getElementById("owner_write").checked = !!(octalValue & 0o200)
+    document.getElementById("owner_exec").checked = !!(octalValue & 0o100)
+
+    // Group permissions
+    document.getElementById("group_read").checked = !!(octalValue & 0o40)
+    document.getElementById("group_write").checked = !!(octalValue & 0o20)
+    document.getElementById("group_exec").checked = !!(octalValue & 0o10)
+
+    // Others permissions
+    document.getElementById("others_read").checked = !!(octalValue & 0o4)
+    document.getElementById("others_write").checked = !!(octalValue & 0o2)
+    document.getElementById("others_exec").checked = !!(octalValue & 0o1)
   }
 
   // Submit chmod form
   const submitChmodBtn = document.getElementById("submitChmod")
   if (submitChmodBtn) {
     submitChmodBtn.addEventListener("click", () => {
+      const directValue = document.getElementById("directPermValue")?.value
+      if (directValue) {
+        document.getElementById("chmodValue").value = directValue.padStart(4, "0")
+      }
       document.getElementById("chmodForm").submit()
     })
   }
