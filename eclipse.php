@@ -1,7 +1,7 @@
 <?php
 /**
  * Eclipse File Manager ~ version 1.0
- * @author Eclipse Security Labs
+ * @author NowMeee
  * @github https://github.com/eclibesec/EclipseFileManager
  */
 session_start();
