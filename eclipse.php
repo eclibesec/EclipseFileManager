@@ -1,4 +1,9 @@
 <?php
+/**
+ * Eclipse File Manager ~ version 1.0
+ * @author Eclipse Security Labs
+ * @github https://github.com/eclibesec/EclipseFileManager
+ */
 session_start();
 $current_filename = basename($_SERVER['SCRIPT_FILENAME']);
 $default_username = 'admin'; // admin
