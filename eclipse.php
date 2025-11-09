@@ -7,7 +7,7 @@
 session_start();
 $current_filename = basename($_SERVER['SCRIPT_FILENAME']);
 $default_username = 'admin'; // admin
-$default_password_hash = '$2a$12$UBIkydbkd50bmZuaQXb0NuvrPd7XeeIKbFaGRYdvJDIHkGQ8GxOZe'; // admin123
+$default_password_hash = '$2a$12$WhSCVl8N1whfb3QLVe8atu65LWu2NWZuJHfqmqnxZT5FPI3udxAC.'; // admin123
 if (!isset($_SESSION['chat_session_id'])) {
     $_SESSION['chat_session_id'] = md5($_SERVER['REMOTE_ADDR'] . time());
 }
@@ -1201,3 +1201,4 @@ $theme = isset($_COOKIE['theme']) ? $_COOKIE['theme'] : 'light';
 </body>
 </html>
 <?php endif; ?>
+
